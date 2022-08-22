@@ -1,0 +1,22 @@
+{
+  "name": "esenlerotogari",
+  "version": "1.0.0",
+  "description": "Carousels made simple",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenAnime/esenlerotogari.git"
+  },
+  "keywords": [
+    "carousel"
+  ],
+  "author": "SpongeBed",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OpenAnime/esenlerotogari/issues"
+  },
+  "homepage": "https://github.com/OpenAnime/esenlerotogari#readme",
+  "type": "module"
+}

@@ -6,7 +6,7 @@
 </script>
 
 <Carousel gap="16" bind:this={carousel}>
-    {#each Array(30) as _, i}
+    {#each Array(1) as _, i}
         <div id="testDiv">
             <h1>Test {i + 1}</h1>
         </div>

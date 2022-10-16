@@ -42,9 +42,12 @@
   }
 </script>
 
-<div id="esenlerotogariCarousel" style="gap: {gap}px;" bind:this={root}>
-  <slot></slot>
+<div id="esenlerotogariHolder" style="--gap-str: {gap}px">
+  <div id="esenlerotogariCarousel" bind:this={root}>
+    <slot></slot>
+  </div>
 </div>
+
 
 <style>
   #esenlerotogariCarousel {
@@ -53,6 +56,7 @@
     overflow-x: scroll;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    gap: var(--gap-str);
   }
 
   #esenlerotogariCarousel::-webkit-scrollbar {

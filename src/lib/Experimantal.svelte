@@ -1,17 +1,48 @@
 <script>
   // @ts-nocheck
   export let gap;
-  export let leftPadding;
-  export let rightPadding;
+  export let rightPadding = 0
   let root;
 
   export function goTo(number) {
-      const getEl = root.children[number - 1]
-      getEl.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+    const parent = root
+    let visiblePX = (parent.getBoundingClientRect().width - window.innerWidth) - parent.getBoundingClientRect().left
+    if (visiblePX > 0) {
+      visiblePX = window.innerWidth
+    } else {
+      for (let element of parent.children) {
+        if ((element.offsetLeft - visiblePX) === 0) {
+          visiblePX += element.getBoundingClientRect().width
+        } else {
+          visiblePX += (element.offsetLeft - visiblePX)
+        }
+      }
+      if (visiblePX > window.innerWidth) visiblePX = window.innerWidth
+    }
+
+    let visibleElements = []
+    let fullVisibleElements = []
+    for (let element of parent.children) {
+      const min = parent.scrollLeft
+      const max = visiblePX + min
+      if ((element.offsetLeft < min && element.offsetLeft + element.getBoundingClientRect().width >= min) || (element
+          .offsetLeft >= min && element.offsetLeft + element.getBoundingClientRect().width <= max) || (element
+          .offsetLeft > min && element.offsetLeft <= max)) {
+        visibleElements.push(element)
+      }
+      if (element.offsetLeft >= min && element.offsetLeft + element.getBoundingClientRect().width <= max)
+        fullVisibleElements.push(element)
+    }
+    const getEl = parent.children[number - 1]
+    if (fullVisibleElements.includes(getEl)) return
+    parent.scrollBy({
+      left: (getEl.offsetLeft - (parent.scrollLeft + visiblePX)) + getEl.getBoundingClientRect().width + rightPadding,
+      behavior: 'smooth'
+    })
   }
 </script>
 
-<div id="esenlerotogariCarousel" style="gap: {gap}px; scroll-padding-right: {rightPadding}; scroll-padding-left: {leftPadding}" bind:this={root}>
+<div id="esenlerotogariCarousel" style="gap: {gap}px;" bind:this={root}>
   <slot></slot>
 </div>
 
@@ -20,7 +51,12 @@
     display: flex;
     flex-wrap: nowrap;
     overflow-x: scroll;
-    overflow: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  #esenlerotogariCarousel::-webkit-scrollbar {
+    display: none;
   }
 
   :global(#esenlerotogariCarousel > *) {

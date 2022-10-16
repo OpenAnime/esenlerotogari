@@ -52,6 +52,7 @@
    if(current == 0) return
    current--
    const container = root.querySelector("#esenlerotogariCarousel")
+   console.log(current)
    const elementzort = container.children[current]
    const offset = elementzort.offsetLeft
    if(nearCollision(current, "left") === true) {
@@ -64,14 +65,14 @@
    } else {
     container.scrollTo({
     top: 0,
-    left: (offset-gap)+difference,
+    left: offset-gap,
     behavior: 'smooth'
    })
    }
   }
 </script>
 
-<div bind:this={root}>
+<div bind:this={root} style="--gap-holder: {gap}px">
  <div id="esenlerotogariCarousel" style="gap: {gap}px">
 
   <slot></slot>
@@ -90,4 +91,11 @@ overflow-x: scroll;
  :global(#esenlerotogariCarousel > *) {
   flex-shrink: 0;
  }
+
+ #esenlerotogariCarousel {
+  padding-right: var(--gap-holder);
+  padding-left: var(--gap-holder);
+ }
+
+ 
 </style>

@@ -1,1 +1,1 @@
-export { default as Carousel } from './Carousel.svelte'
+export { default as Carousel } from './Experimantal.svelte'

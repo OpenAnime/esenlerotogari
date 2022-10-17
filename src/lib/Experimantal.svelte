@@ -48,7 +48,13 @@
           behavior: 'smooth'
         })
       }
-    }
+    } else {
+        parent.scrollBy({
+          left: (getEl.offsetLeft - (parent.scrollLeft + visiblePX)) + getEl.getBoundingClientRect().width +
+            padding,
+          behavior: 'smooth'
+        })
+      }
   }
 </script>
 

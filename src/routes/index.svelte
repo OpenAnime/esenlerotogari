@@ -18,6 +18,7 @@
     {/if}
     {/each}
 </Carousel>
+<button on:click={() => carousel.goTo(1)}>Ğ</button>
 
 
 

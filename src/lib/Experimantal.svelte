@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   export let gap;
-  export let rightPadding = 0
+  export let padding = 0
   let root;
 
   export function goTo(number) {
@@ -35,10 +35,20 @@
     }
     const getEl = parent.children[number - 1]
     if (fullVisibleElements.includes(getEl)) return
-    parent.scrollBy({
-      left: (getEl.offsetLeft - (parent.scrollLeft + visiblePX)) + getEl.getBoundingClientRect().width + rightPadding,
-      behavior: 'smooth'
-    })
+    if (visibleElements.includes(getEl)) {
+      if (getEl.offsetLeft < parent.scrollLeft) {
+        parent.scrollBy({
+        left: -Math.abs((parent.scrollLeft - getEl.offsetLeft) + padding),
+        behavior: 'smooth'
+      })
+      } else {
+        parent.scrollBy({
+          left: (getEl.offsetLeft - (parent.scrollLeft + visiblePX)) + getEl.getBoundingClientRect().width +
+            padding,
+          behavior: 'smooth'
+        })
+      }
+    }
   }
 </script>
 

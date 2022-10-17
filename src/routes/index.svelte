@@ -5,7 +5,7 @@
     let carousel;
 </script>
 
-<Carousel gap="16" bind:this={carousel} rightPadding={64}>
+<Carousel gap="16" bind:this={carousel} padding={64}>
     {#each Array(10) as _, i}
     {#if i == 0}
     <div id="testDiv" on:click={() => carousel.goTo(i+1)} style="margin-left:2rem">

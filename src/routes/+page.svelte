@@ -4,10 +4,13 @@
   let es;
 </script>
 
-<Carousel gap={16} padding={20} bind:this={es}>
+<Carousel gap={10} padding={25} bind:this={es}>
   {#each new Array(30) as child, i}
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div
       id="child{i + 1}"
+      on:click={es.goTo(i + 1)}
       style="width: 300px; height: 100px; background-color:red;"
     >
       {i + 1}
@@ -15,9 +18,7 @@
   {/each}
 </Carousel>
 
-<button on:click={() => es.goTo(10)}>10</button>
-<button on:click={() => es.goTo(1)}>1</button>
-<button on:click={() => es.goTo(2)}>2</button>
+<button on:click={() => es.goTo(14)}>14</button>
 
 <style>
   :global(body) {

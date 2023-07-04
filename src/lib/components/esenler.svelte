@@ -6,14 +6,17 @@
   let root;
   let currentNumber = 1;
 
-  function getEntriesWithIntersectionLessThanOne(targets, root) {
-    return new Promise((resolve, reject) => {
+  function getEntriesWithIntersectionLessThanOne(targets) {
+    return new Promise((resolve) => {
       const observer = new IntersectionObserver((entries) => {
         const entriesWithIntersectionLessThanOne = entries
           .filter((entry) => entry.intersectionRatio < 1)
           .map((x) => {
             observer.unobserve(x.target);
-            return x.target;
+            return {
+              element: x.target,
+              intersectionRatio: x.intersectionRatio * 100,
+            };
           });
         resolve(entriesWithIntersectionLessThanOne);
       });
@@ -25,6 +28,7 @@
   }
 
   export async function goTo(number) {
+    let operation = "scrollTo";
     const get = await getEntriesWithIntersectionLessThanOne(
       Array.from(root.children),
       root
@@ -32,7 +36,10 @@
 
     const targetChildren = root.children[number - 1];
 
-    if (get.includes(targetChildren)) {
+    if (get.map((x) => x.element).includes(targetChildren)) {
+      const intersectionPercent = get.find(
+        (x) => x.element == targetChildren
+      ).intersectionRatio;
       //this means user can't see the children, let's scroll to it then.
       const getLeftOffset = targetChildren.offsetLeft;
       const getWidth = targetChildren.getBoundingClientRect().width;
@@ -41,6 +48,23 @@
       if (number >= currentNumber) {
         //we should do addition if target is on the right side
         calculateDistance = getLeftOffset - padding;
+        if (intersectionPercent != 0) {
+          //some of it can be seen. let's calculate the diff
+
+          /*
+         
+           100 - 300
+               x
+            7  -  x
+          ------------
+
+          */
+
+          const percentToPX = intersectionPercent * (getWidth / 100);
+          const scrollBy = getWidth - percentToPX;
+          operation = "scrollBy";
+          calculateDistance = scrollBy + padding;
+        }
       } else {
         calculateDistance = getLeftOffset - getWidth;
         if (calculateDistance > 0) {
@@ -48,7 +72,7 @@
         }
       }
 
-      root.scrollTo({
+      root[operation]({
         left: calculateDistance,
         behavior: "smooth",
       });

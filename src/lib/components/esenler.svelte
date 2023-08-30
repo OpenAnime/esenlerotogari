@@ -10,7 +10,10 @@
     return new Promise((resolve) => {
       const observer = new IntersectionObserver((entries) => {
         const entriesWithIntersectionLessThanOne = entries
-          .filter((entry) => entry.intersectionRatio < 1)
+          .filter(
+            (entry) =>
+              entry.intersectionRect.width / entry.boundingClientRect.width < 1
+          )
           .map((x) => {
             observer.unobserve(x.target);
             return {

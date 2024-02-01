@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   export let gap = 0;
   export let padding = 0;
   export let intersections = [];
@@ -61,13 +60,13 @@
           //some of it can be seen. let's calculate the diff
 
           /*
-         
-           100 - 300
-               x
-            7  -  x
-          ------------
+      
+        100 - 300
+            x
+         7  -  x
+       ------------
 
-          */
+       */
 
           const percentToPX = intersectionPercent * (getWidth / 100);
           const scrollBy = getWidth - percentToPX;
@@ -87,10 +86,18 @@
           behavior: "smooth",
         });
       } else {
-        const willBeScrolledTo =
+        let willBeScrolledTo =
           operation == "scrollTo"
             ? calculateDistance
             : root.scrollLeft + calculateDistance;
+
+        if (willBeScrolledTo < 0) willBeScrolledTo = 0;
+
+        const maximumScrollLeft = root.scrollWidth - root.clientWidth;
+
+        if (willBeScrolledTo > maximumScrollLeft) {
+          willBeScrolledTo = maximumScrollLeft;
+        }
 
         const start = root.scrollLeft;
         const target = willBeScrolledTo;

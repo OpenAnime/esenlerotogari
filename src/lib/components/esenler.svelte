@@ -2,6 +2,10 @@
   import { onMount } from "svelte";
   export let gap = 0;
   export let padding = 0;
+  export let intersections = [];
+
+  export let easingFunction;
+  export let easingDuration = 500;
 
   let root;
   let currentNumber = 1;
@@ -21,6 +25,8 @@
               intersectionRatio: x.intersectionRatio * 100,
             };
           });
+
+        intersections = entriesWithIntersectionLessThanOne;
         resolve(entriesWithIntersectionLessThanOne);
       });
 
@@ -75,24 +81,52 @@
         }
       }
 
-      root[operation]({
-        left: calculateDistance,
-        behavior: "smooth",
-      });
+      if (!easingFunction) {
+        root[operation]({
+          left: calculateDistance,
+          behavior: "smooth",
+        });
+      } else {
+        const willBeScrolledTo =
+          operation == "scrollTo"
+            ? calculateDistance
+            : root.scrollLeft + calculateDistance;
+
+        const start = root.scrollLeft;
+        const target = willBeScrolledTo;
+        const startTime = performance.now();
+
+        function scrollStep(timestamp) {
+          const currentTime = timestamp || performance.now();
+          const elapsedTime = currentTime - startTime;
+
+          root.scrollTo({
+            left:
+              start +
+              (target - start) * easingFunction(elapsedTime / easingDuration),
+          });
+
+          if (elapsedTime < easingDuration) {
+            requestAnimationFrame(scrollStep);
+          }
+        }
+
+        requestAnimationFrame(scrollStep);
+      }
     }
 
     currentNumber = number;
   }
 </script>
 
-<div id="esenlerotogariHolder" style="--gap-str: {gap}px">
-  <div id="esenlerotogariCarousel" bind:this={root}>
+<div id="esenler-holder" style="--gap-str: {gap}px">
+  <div id="esenler-carousel" bind:this={root}>
     <slot />
   </div>
 </div>
 
 <style>
-  #esenlerotogariCarousel {
+  #esenler-carousel {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: scroll;
@@ -101,11 +135,11 @@
     gap: var(--gap-str);
   }
 
-  #esenlerotogariCarousel::-webkit-scrollbar {
+  #esenler-carousel::-webkit-scrollbar {
     display: none;
   }
 
-  :global(#esenlerotogariCarousel > *) {
+  :global(#esenler-carousel > *) {
     flex-shrink: 0;
   }
 </style>

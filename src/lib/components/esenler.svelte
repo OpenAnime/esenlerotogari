@@ -6,7 +6,8 @@
   export let easingFunction;
   export let easingDuration = 500;
 
-  let root;
+  export let root;
+
   let currentNumber = 1;
 
   function getEntriesWithIntersectionLessThanOne(targets) {

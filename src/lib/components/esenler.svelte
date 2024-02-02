@@ -104,38 +104,50 @@
             ? calculateDistance
             : root.scrollLeft + calculateDistance;
 
-        if (willBeScrolledTo < 0) willBeScrolledTo = 0;
-
-        const maximumScrollLeft = root.scrollWidth - root.clientWidth;
-
-        if (willBeScrolledTo > maximumScrollLeft) {
-          willBeScrolledTo = maximumScrollLeft;
-        }
-
-        const start = root.scrollLeft;
-        const target = willBeScrolledTo;
-        const startTime = performance.now();
-
-        function scrollStep(timestamp) {
-          const currentTime = timestamp || performance.now();
-          const elapsedTime = currentTime - startTime;
-
-          root.scrollTo({
-            left:
-              start +
-              (target - start) * easingFunction(elapsedTime / easingDuration),
-          });
-
-          if (elapsedTime < easingDuration) {
-            requestAnimationFrame(scrollStep);
-          }
-        }
-
-        requestAnimationFrame(scrollStep);
+        scrollTo(willBeScrolledTo);
       }
     }
 
     currentNumber = number;
+  }
+
+  export async function scrollTo(targetPX) {
+    if (!easingFunction) {
+      root.scrollTo({
+        left: targetPX,
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    if (targetPX < 0) targetPX = 0;
+
+    const maximumScrollLeft = root.scrollWidth - root.clientWidth;
+
+    if (targetPX > maximumScrollLeft) {
+      targetPX = maximumScrollLeft;
+    }
+
+    const start = root.scrollLeft;
+    const startTime = performance.now();
+
+    function scrollStep(timestamp) {
+      const currentTime = timestamp || performance.now();
+      const elapsedTime = currentTime - startTime;
+
+      root.scrollTo({
+        left:
+          start +
+          (targetPX - start) * easingFunction(elapsedTime / easingDuration),
+      });
+
+      if (elapsedTime < easingDuration) {
+        requestAnimationFrame(scrollStep);
+      }
+    }
+
+    requestAnimationFrame(scrollStep);
   }
 
   onMount(() => goTo(1)); //to export intersection observer entries when component is mounted

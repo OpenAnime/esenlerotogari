@@ -9,7 +9,7 @@
   }
 
   onMount(async () => {
-    console.log(await es.intersections());
+    es.scrollTo(200);
   });
 </script>
 

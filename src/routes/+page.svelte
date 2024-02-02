@@ -2,9 +2,6 @@
   import { Carousel } from "$lib";
 
   let es;
-  let intersections = [];
-
-  $: console.log(intersections);
 
   function expoOut(t) {
     return t === 1.0 ? t : 1.0 - Math.pow(2.0, -10.0 * t);
@@ -15,7 +12,6 @@
   gap={10}
   padding={25}
   bind:this={es}
-  bind:intersections
   easingFunction={expoOut}
   easingDuration={500}
 >

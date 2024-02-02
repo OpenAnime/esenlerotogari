@@ -3,7 +3,6 @@
 
   export let gap = 0;
   export let padding = 0;
-  export let intersections = [];
 
   export let easingFunction;
   export let easingDuration = 500;
@@ -32,7 +31,6 @@
             };
           });
 
-        intersections = entries;
         resolve(entriesWithIntersectionLessThanOne);
       });
 
@@ -40,6 +38,12 @@
         observer.observe(target);
       });
     });
+  }
+
+  export async function intersections() {
+    return await getEntriesWithIntersectionLessThanOne(
+      Array.from(root.children)
+    );
   }
 
   export async function goTo(number) {

@@ -1,6 +1,6 @@
 {
   "name": "esenlerotogari",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "scripts": {
     "dev": "vite dev --port=653",
     "build": "vite build && npm run package",

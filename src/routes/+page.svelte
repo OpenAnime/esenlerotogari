@@ -1,11 +1,16 @@
 <script>
   import { Carousel } from "$lib";
+  import { onMount } from "svelte";
 
   let es;
 
   function expoOut(t) {
     return t === 1.0 ? t : 1.0 - Math.pow(2.0, -10.0 * t);
   }
+
+  onMount(async () => {
+    console.log(await es.intersections());
+  });
 </script>
 
 <Carousel

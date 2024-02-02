@@ -11,7 +11,7 @@
 
   let currentNumber = 1;
 
-  function getEntriesWithIntersectionLessThanOne(targets) {
+  function getEntriesWithIntersectionLessThanOne(targets, filter = true) {
     return new Promise((resolve) => {
       let gotOne = false;
       let observer = new IntersectionObserver((entries) => {
@@ -19,9 +19,11 @@
         gotOne = true;
 
         const entriesWithIntersectionLessThanOne = entries
-          .filter(
-            (entry) =>
-              entry.intersectionRect.width / entry.boundingClientRect.width < 1
+          .filter((entry) =>
+            filter
+              ? entry.intersectionRect.width / entry.boundingClientRect.width <
+                1
+              : true
           )
           .map((x) => {
             observer.unobserve(x.target);
@@ -42,15 +44,15 @@
 
   export async function intersections() {
     return await getEntriesWithIntersectionLessThanOne(
-      Array.from(root.children)
+      Array.from(root.children),
+      false
     );
   }
 
   export async function goTo(number) {
     let operation = "scrollTo";
     const get = await getEntriesWithIntersectionLessThanOne(
-      Array.from(root.children),
-      root
+      Array.from(root.children)
     );
 
     const targetChildren = root.children[number - 1];

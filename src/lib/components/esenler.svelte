@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from "svelte";
+
   export let gap = 0;
   export let padding = 0;
   export let intersections = [];
@@ -12,7 +14,11 @@
 
   function getEntriesWithIntersectionLessThanOne(targets) {
     return new Promise((resolve) => {
-      const observer = new IntersectionObserver((entries) => {
+      let gotOne = false;
+      let observer = new IntersectionObserver((entries) => {
+        if (gotOne) return;
+        gotOne = true;
+
         const entriesWithIntersectionLessThanOne = entries
           .filter(
             (entry) =>
@@ -26,7 +32,7 @@
             };
           });
 
-        intersections = entriesWithIntersectionLessThanOne;
+        intersections = entries;
         resolve(entriesWithIntersectionLessThanOne);
       });
 
@@ -125,6 +131,8 @@
 
     currentNumber = number;
   }
+
+  onMount(() => goTo(1)); //to export intersection observer entries when component is mounted
 </script>
 
 <div id="esenler-holder" style="--gap-str: {gap}px">

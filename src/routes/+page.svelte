@@ -7,7 +7,8 @@
 	let carouselEl: EsenlerOtogari;
 
 	onMount(async () => {
-		carouselEl.scrollTo(200);
+		await carouselEl.scrollTo(200);
+		console.log('onmount scroll finished');
 	});
 </script>
 
@@ -31,7 +32,12 @@
 	{/each}
 </EsenlerOtogari>
 
-<button on:click={() => carouselEl.goTo(14)}>14</button>
+<button
+	on:click={async () => {
+		await carouselEl.goTo(14);
+		console.log('goto 14 finished');
+	}}>14</button
+>
 
 <style>
 	:global(body) {

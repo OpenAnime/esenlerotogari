@@ -8,125 +8,94 @@
 	export let easingDuration = 500;
 	export let root: HTMLElement | undefined = undefined;
 
-	let currentNumber = 1;
+	export const goTo = async (number: number) => {
+		if (!root || number < 1 || number > root.children.length) return;
 
-	function getEntriesWithIntersectionLessThanOne(
-		targets: Element[],
-		filter = true
-	): Promise<
-		{
-			element: Element;
-			intersectionRatio: number;
-		}[]
-	> {
-		return new Promise((resolve) => {
-			let gotOne = false;
+		const targetChild = root.children[number - 1] as HTMLElement;
 
-			const observer = new IntersectionObserver((entries) => {
-				if (gotOne) return;
-				gotOne = true;
+		const rootRect = root.getBoundingClientRect();
+		const childRect = targetChild.getBoundingClientRect();
+		const currentScroll = root.scrollLeft;
 
-				const entriesWithIntersectionLessThanOne = entries
-					.filter((entry) =>
-						filter ? entry.intersectionRect.width / entry.boundingClientRect.width < 1 : true
-					)
-					.map((x) => {
-						observer.unobserve(x.target);
-						return {
-							element: x.target,
-							intersectionRatio: x.intersectionRatio * 100
-						};
-					});
+		const safeLeft = rootRect.left + padding;
+		const safeRight = rootRect.right - padding;
 
-				resolve(entriesWithIntersectionLessThanOne);
-			});
+		let targetScrollLeft = currentScroll;
 
-			targets.forEach((target) => observer.observe(target));
-		});
-	}
+		const alignLeftScroll = currentScroll + (childRect.left - rootRect.left) - padding;
 
-	export const getIntersections = (filter = false) => {
-		return getEntriesWithIntersectionLessThanOne(Array.from(root!.children), filter);
+		const isFullyOffRight = childRect.left >= rootRect.right;
+		const isFullyOffLeft = childRect.right <= rootRect.left;
+		const isFullyVisible = childRect.left >= safeLeft && childRect.right <= safeRight;
+		const isWiderThanSafeZone = childRect.width > safeRight - safeLeft;
+
+		if (isFullyVisible) {
+			targetScrollLeft = currentScroll;
+		} else if (isWiderThanSafeZone || isFullyOffRight || isFullyOffLeft) {
+			targetScrollLeft = alignLeftScroll;
+		} else if (childRect.right > safeRight) {
+			targetScrollLeft = currentScroll + (childRect.right - safeRight);
+		} else if (childRect.left < safeLeft) {
+			targetScrollLeft = currentScroll - (safeLeft - childRect.left);
+		}
+
+		if (Math.abs(targetScrollLeft - currentScroll) < 1) return;
+
+		await scrollTo(targetScrollLeft);
 	};
 
-	export const goTo = async (number: number) => {
-		let operation: 'scrollTo' | 'scrollBy' = 'scrollTo';
+	export const scrollTo = (targetPX: number): Promise<void> => {
+		return new Promise((resolve) => {
+			if (!root) return resolve();
 
-		const entries = await getIntersections(true);
-		const targetChildren = root!.children[number - 1] as HTMLElement;
-
-		if (entries.map((x) => x.element).includes(targetChildren)) {
-			const intersectionPercent = entries.find(
-				(x) => x.element == targetChildren
-			)!.intersectionRatio;
-
-			const getLeftOffset = targetChildren.offsetLeft;
-			const getWidth = targetChildren.getBoundingClientRect().width;
-
-			let calculateDistance;
-
-			if (number >= currentNumber) {
-				calculateDistance = getLeftOffset - padding;
-
-				if (intersectionPercent != 0) {
-					const percentToPX = intersectionPercent * (getWidth / 100);
-					const scrollBy = getWidth - percentToPX;
-
-					operation = 'scrollBy';
-					calculateDistance = scrollBy + padding;
-				}
-			} else {
-				calculateDistance = getLeftOffset - getWidth;
-				if (calculateDistance > 0) calculateDistance = getLeftOffset - padding;
-			}
+			const maxScrollLeft = root.scrollWidth - root.clientWidth;
+			const clampedTarget = Math.max(0, Math.min(targetPX, maxScrollLeft));
 
 			if (!easingFunction) {
-				root![operation]({
-					left: calculateDistance,
+				root.scrollTo({
+					left: clampedTarget,
 					behavior: 'smooth'
 				});
-			} else {
-				const willBeScrolledTo =
-					operation == 'scrollTo' ? calculateDistance : root!.scrollLeft + calculateDistance;
 
-				scrollTo(willBeScrolledTo);
+				if ('onscrollend' in window) {
+					root.addEventListener('scrollend', () => resolve(), { once: true });
+				} else {
+					setTimeout(resolve, 500);
+				}
+				return;
 			}
-		}
 
-		currentNumber = number;
+			const startScroll = root.scrollLeft;
+			const distance = clampedTarget - startScroll;
+
+			if (Math.abs(distance) < 1) return resolve();
+
+			const startTime = performance.now();
+
+			const scrollStep = (timestamp: number) => {
+				const currentTime = timestamp || performance.now();
+				const elapsedTime = currentTime - startTime;
+
+				const progress = Math.min(elapsedTime / easingDuration, 1);
+
+				root!.scrollTo({
+					left: startScroll + distance * easingFunction(progress)
+				});
+
+				if (progress < 1) {
+					requestAnimationFrame(scrollStep);
+				} else {
+					resolve();
+				}
+			};
+
+			requestAnimationFrame(scrollStep);
+		});
 	};
 
-	export const scrollTo = async (targetPX: number) => {
-		if (!easingFunction) {
-			return root!.scrollTo({
-				left: targetPX,
-				behavior: 'smooth'
-			});
-		}
-
-		const maximumScrollLeft = root!.scrollWidth - root!.clientWidth;
-
-		if (targetPX < 0) targetPX = 0;
-		if (targetPX > maximumScrollLeft) targetPX = maximumScrollLeft;
-
-		const start = root!.scrollLeft;
-		const startTime = performance.now();
-
-		const scrollStep = (timestamp: number) => {
-			const currentTime = timestamp || performance.now();
-			const elapsedTime = currentTime - startTime;
-
-			root!.scrollTo({
-				left: start + (targetPX - start) * easingFunction(elapsedTime / easingDuration)
-			});
-
-			if (elapsedTime < easingDuration) requestAnimationFrame(scrollStep);
-		};
-
-		requestAnimationFrame(scrollStep);
-	};
-
-	onMount(() => goTo(1));
+	onMount(() => {
+		setTimeout(() => goTo(1), 0);
+	});
 </script>
 
 <div id="esenler-holder" style="--gap-str: {gap}px">

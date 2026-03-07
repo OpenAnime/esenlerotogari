@@ -8,44 +8,47 @@
 	export let easingDuration = 500;
 	export let root: HTMLElement | undefined = undefined;
 
-	export const goTo = async (number: number) => {
-		return new Promise((resolve) => {
-			requestAnimationFrame(async () => {
-				if (!root || number < 1 || number > root.children.length) return resolve();
-
-				const targetChild = root.children[number - 1] as HTMLElement;
-
-				const rootRect = root.getBoundingClientRect();
-				const childRect = targetChild.getBoundingClientRect();
-				const currentScroll = root.scrollLeft;
-
-				const safeLeft = rootRect.left + padding;
-				const safeRight = rootRect.right - padding;
-
-				let targetScrollLeft = currentScroll;
-				const alignLeftScroll = currentScroll + (childRect.left - rootRect.left) - padding;
-
-				const isFullyOffRight = childRect.left >= rootRect.right;
-				const isFullyOffLeft = childRect.right <= rootRect.left;
-				const isFullyVisible = childRect.left >= safeLeft && childRect.right <= safeRight;
-				const isWiderThanSafeZone = childRect.width > safeRight - safeLeft;
-
-				if (isFullyVisible) {
-					targetScrollLeft = currentScroll;
-				} else if (isWiderThanSafeZone || isFullyOffRight || isFullyOffLeft) {
-					targetScrollLeft = alignLeftScroll;
-				} else if (childRect.right > safeRight) {
-					targetScrollLeft = currentScroll + (childRect.right - safeRight);
-				} else if (childRect.left < safeLeft) {
-					targetScrollLeft = currentScroll - (safeLeft - childRect.left);
-				}
-
-				if (Math.abs(targetScrollLeft - currentScroll) < 1) return resolve();
-
-				await scrollTo(targetScrollLeft);
-				resolve();
+	const waitForLayout = () =>
+		new Promise((resolve) => {
+			requestAnimationFrame(() => {
+				requestAnimationFrame(resolve);
 			});
-		}) as Promise<void>;
+		});
+
+	export const goTo = async (number: number) => {
+		if (!root || number < 1 || number > root.children.length) return;
+
+		await waitForLayout();
+
+		const targetChild = root.children[number - 1] as HTMLElement;
+		const rootRect = root.getBoundingClientRect();
+		const childRect = targetChild.getBoundingClientRect();
+		const currentScroll = root.scrollLeft;
+
+		const safeLeft = rootRect.left + padding;
+		const safeRight = rootRect.right - padding;
+
+		let targetScrollLeft = currentScroll;
+		const alignLeftScroll = currentScroll + (childRect.left - rootRect.left) - padding;
+
+		const isFullyVisible = childRect.left >= safeLeft && childRect.right <= safeRight;
+		const isWiderThanSafeZone = childRect.width > safeRight - safeLeft;
+		const isFullyOffRight = childRect.left >= rootRect.right;
+		const isFullyOffLeft = childRect.right <= rootRect.left;
+
+		if (isFullyVisible) {
+			targetScrollLeft = currentScroll;
+		} else if (isWiderThanSafeZone || isFullyOffRight || isFullyOffLeft) {
+			targetScrollLeft = alignLeftScroll;
+		} else if (childRect.right > safeRight) {
+			targetScrollLeft = currentScroll + (childRect.right - safeRight);
+		} else if (childRect.left < safeLeft) {
+			targetScrollLeft = currentScroll - (safeLeft - childRect.left);
+		}
+
+		if (Math.abs(targetScrollLeft - currentScroll) < 1) return;
+
+		await scrollTo(targetScrollLeft);
 	};
 
 	export const scrollTo = (targetPX: number): Promise<void> => {
@@ -60,7 +63,6 @@
 					left: clampedTarget,
 					behavior: 'smooth'
 				});
-
 				if ('onscrollend' in window) {
 					root.addEventListener('scrollend', () => resolve(), { once: true });
 				} else {
@@ -79,7 +81,6 @@
 			const scrollStep = (timestamp: number) => {
 				const currentTime = timestamp || performance.now();
 				const elapsedTime = currentTime - startTime;
-
 				const progress = Math.min(elapsedTime / easingDuration, 1);
 
 				root!.scrollTo({
@@ -98,7 +99,7 @@
 	};
 
 	onMount(() => {
-		setTimeout(() => goTo(1), 0);
+		waitForLayout().then(() => goTo(1));
 	});
 </script>
 

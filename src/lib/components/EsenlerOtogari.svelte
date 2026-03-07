@@ -9,39 +9,43 @@
 	export let root: HTMLElement | undefined = undefined;
 
 	export const goTo = async (number: number) => {
-		if (!root || number < 1 || number > root.children.length) return;
+		return new Promise((resolve) => {
+			requestAnimationFrame(async () => {
+				if (!root || number < 1 || number > root.children.length) return resolve();
 
-		const targetChild = root.children[number - 1] as HTMLElement;
+				const targetChild = root.children[number - 1] as HTMLElement;
 
-		const rootRect = root.getBoundingClientRect();
-		const childRect = targetChild.getBoundingClientRect();
-		const currentScroll = root.scrollLeft;
+				const rootRect = root.getBoundingClientRect();
+				const childRect = targetChild.getBoundingClientRect();
+				const currentScroll = root.scrollLeft;
 
-		const safeLeft = rootRect.left + padding;
-		const safeRight = rootRect.right - padding;
+				const safeLeft = rootRect.left + padding;
+				const safeRight = rootRect.right - padding;
 
-		let targetScrollLeft = currentScroll;
+				let targetScrollLeft = currentScroll;
+				const alignLeftScroll = currentScroll + (childRect.left - rootRect.left) - padding;
 
-		const alignLeftScroll = currentScroll + (childRect.left - rootRect.left) - padding;
+				const isFullyOffRight = childRect.left >= rootRect.right;
+				const isFullyOffLeft = childRect.right <= rootRect.left;
+				const isFullyVisible = childRect.left >= safeLeft && childRect.right <= safeRight;
+				const isWiderThanSafeZone = childRect.width > safeRight - safeLeft;
 
-		const isFullyOffRight = childRect.left >= rootRect.right;
-		const isFullyOffLeft = childRect.right <= rootRect.left;
-		const isFullyVisible = childRect.left >= safeLeft && childRect.right <= safeRight;
-		const isWiderThanSafeZone = childRect.width > safeRight - safeLeft;
+				if (isFullyVisible) {
+					targetScrollLeft = currentScroll;
+				} else if (isWiderThanSafeZone || isFullyOffRight || isFullyOffLeft) {
+					targetScrollLeft = alignLeftScroll;
+				} else if (childRect.right > safeRight) {
+					targetScrollLeft = currentScroll + (childRect.right - safeRight);
+				} else if (childRect.left < safeLeft) {
+					targetScrollLeft = currentScroll - (safeLeft - childRect.left);
+				}
 
-		if (isFullyVisible) {
-			targetScrollLeft = currentScroll;
-		} else if (isWiderThanSafeZone || isFullyOffRight || isFullyOffLeft) {
-			targetScrollLeft = alignLeftScroll;
-		} else if (childRect.right > safeRight) {
-			targetScrollLeft = currentScroll + (childRect.right - safeRight);
-		} else if (childRect.left < safeLeft) {
-			targetScrollLeft = currentScroll - (safeLeft - childRect.left);
-		}
+				if (Math.abs(targetScrollLeft - currentScroll) < 1) return resolve();
 
-		if (Math.abs(targetScrollLeft - currentScroll) < 1) return;
-
-		await scrollTo(targetScrollLeft);
+				await scrollTo(targetScrollLeft);
+				resolve();
+			});
+		}) as Promise<void>;
 	};
 
 	export const scrollTo = (targetPX: number): Promise<void> => {

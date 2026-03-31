@@ -7,12 +7,13 @@
 	let carouselEl: EsenlerOtogari;
 
 	onMount(async () => {
-		await carouselEl.scrollTo(200);
+		//await carouselEl.scrollTo(200);
 		console.log('onmount scroll finished');
 	});
 </script>
 
 <EsenlerOtogari
+	onPageData={(data) => console.log('page data', data)}
 	gap={10}
 	padding={25}
 	easingFunction={expoOut}
@@ -37,6 +38,20 @@
 		await carouselEl.goTo(14);
 		console.log('goto 14 finished');
 	}}>14</button
+>
+
+<button
+	on:click={async () => {
+		await carouselEl.goToPreviousPage();
+		console.log('prev page finished');
+	}}>prev page</button
+>
+
+<button
+	on:click={async () => {
+		await carouselEl.goToNextPage();
+		console.log('next page finished');
+	}}>next page</button
 >
 
 <style>
